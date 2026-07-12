@@ -1,12 +1,15 @@
-import { Suspense, useEffect } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { Suspense, useEffect, useState } from 'react'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { OrbitControls, ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { useStore } from '../store/useStore'
 import { SYSTEMS } from '../data/systems'
+import { useIsMobile } from '../hooks'
 import SystemModel from './SystemModel'
 import CameraRig from './CameraRig'
 import { updateClip } from './clip'
+import { sceneInfo } from './clip'
 
 function ClipUpdater() {
   const clip = useStore((s) => s.clip)
@@ -14,15 +17,57 @@ function ClipUpdater() {
   return null
 }
 
+// Image-based lighting from a procedural studio room (no network assets). Gives
+// organs a soft, realistic sheen and grounds every material in reflections.
+function EnvLight() {
+  const gl = useThree((s) => s.gl)
+  const scene = useThree((s) => s.scene)
+  useEffect(() => {
+    const pmrem = new THREE.PMREMGenerator(gl)
+    const rt = pmrem.fromScene(new RoomEnvironment(), 0.04)
+    scene.environment = rt.texture
+    return () => { rt.texture.dispose(); pmrem.dispose(); scene.environment = null }
+  }, [gl, scene])
+  return null
+}
+
 function Lights() {
   return (
     <>
-      <hemisphereLight args={['#dfe8f2', '#20242c', 1.0]} />
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[6, 10, 8]} intensity={1.15} />
-      <directionalLight position={[-8, 4, -6]} intensity={0.5} color="#9fb8d6" />
-      <directionalLight position={[0, -6, 4]} intensity={0.25} color="#ffd9b0" />
+      <hemisphereLight args={['#eaf0f7', '#181c22', 0.55]} />
+      <directionalLight position={[6, 12, 8]} intensity={1.35} color="#fff6ea" />
+      <directionalLight position={[-9, 5, -7]} intensity={0.5} color="#a8c4e6" />
+      <directionalLight position={[0, -7, 5]} intensity={0.28} color="#ffd3ad" />
     </>
+  )
+}
+
+// soft grounding shadow under the model, positioned from the measured bounds
+function GroundShadow({ mobile }: { mobile: boolean }) {
+  const [cfg, setCfg] = useState<{ x: number; y: number; z: number; scale: number; far: number } | null>(null)
+  useFrame(() => {
+    if (!cfg && sceneInfo.set) {
+      setCfg({
+        x: sceneInfo.center.x,
+        y: sceneInfo.center.y - sceneInfo.size.y / 2 - sceneInfo.size.y * 0.03,
+        z: sceneInfo.center.z,
+        scale: Math.max(sceneInfo.size.x, sceneInfo.size.z) * 1.6,
+        far: sceneInfo.size.y * 1.05,
+      })
+    }
+  })
+  if (!cfg) return null
+  return (
+    <ContactShadows
+      position={[cfg.x, cfg.y, cfg.z]}
+      scale={cfg.scale}
+      far={cfg.far}
+      resolution={mobile ? 512 : 1024}
+      blur={2.8}
+      opacity={0.5}
+      color="#04060b"
+      frames={mobile ? 1 : undefined}
+    />
   )
 }
 
@@ -30,6 +75,7 @@ export default function Viewer() {
   const visibleSystems = useStore((s) => s.visibleSystems)
   const autoRotate = useStore((s) => s.autoRotate)
   const select = useStore((s) => s.select)
+  const mobile = useIsMobile()
   // keep a stable render order matching SYSTEMS
   const active = SYSTEMS.filter((s) => visibleSystems.includes(s.id))
 
@@ -41,17 +87,19 @@ export default function Viewer() {
       onCreated={({ gl }) => {
         gl.localClippingEnabled = true
         gl.toneMapping = THREE.ACESFilmicToneMapping
-        gl.toneMappingExposure = 1.05
+        gl.toneMappingExposure = 1.1
       }}
       onPointerMissed={() => select(null)}
     >
-      <color attach="background" args={['#0b1220']} />
-      <fog attach="fog" args={['#0b1220', 60, 260]} />
+      <color attach="background" args={['#0a0f18']} />
+      <fog attach="fog" args={['#0a0f18', 70, 300]} />
+      <EnvLight />
       <Lights />
       <Suspense fallback={null}>
         {active.map((s) => (
           <SystemModel key={s.id} system={s.id} />
         ))}
+        <GroundShadow mobile={mobile} />
       </Suspense>
       <CameraRig />
       <ClipUpdater />

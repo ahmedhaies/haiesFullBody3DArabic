@@ -6,12 +6,14 @@ import { BY_ID } from '../data/terminology'
 
 export type PanelId = 'none' | 'search' | 'layers' | 'tools' | 'tours' | 'library' | 'info'
 export type Axis = 'x' | 'y' | 'z'
+export type Sex = 'male' | 'female'
 
 interface ClipState { enabled: boolean; axis: Axis; value: number; flip: boolean }
 
 interface State {
   lang: Lang
   ready: boolean
+  sex: Sex
 
   visibleSystems: SystemId[]
   selectedId: string | null
@@ -37,6 +39,7 @@ interface State {
   setLang: (l: Lang) => void
   toggleLang: () => void
   setReady: (r: boolean) => void
+  setSex: (s: Sex) => void
 
   toggleSystem: (id: SystemId) => void
   setSystemVisible: (id: SystemId, v: boolean) => void
@@ -71,6 +74,7 @@ export const useStore = create<State>()(
     (set, get) => ({
       lang: 'ar',
       ready: false,
+      sex: 'male',
       visibleSystems: defaultVisible,
       selectedId: null,
       hoveredId: null,
@@ -94,6 +98,7 @@ export const useStore = create<State>()(
       },
       toggleLang: () => get().setLang(get().lang === 'ar' ? 'en' : 'ar'),
       setReady: (r) => set({ ready: r }),
+      setSex: (s) => set({ sex: s }),
 
       toggleSystem: (id) =>
         set((s) => ({
@@ -157,6 +162,7 @@ export const useStore = create<State>()(
       name: 'haies-anatomy',
       partialize: (s) => ({
         lang: s.lang,
+        sex: s.sex,
         favorites: s.favorites,
         notes: s.notes,
         visibleSystems: s.visibleSystems,

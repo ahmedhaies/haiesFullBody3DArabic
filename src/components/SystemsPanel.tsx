@@ -9,9 +9,19 @@ export default function SystemsPanel() {
   const toggle = useStore((s) => s.toggleSystem)
   const showAll = useStore((s) => s.showAllSystems)
   const showOnly = useStore((s) => s.showOnlySystem)
+  const sex = useStore((s) => s.sex)
+  const setSex = useStore((s) => s.setSex)
 
   return (
     <div className="panel-body">
+      <div className="sex-field">
+        <span className="sex-field-label">{t('sexTitle', lang)}</span>
+        <div className="sex-toggle sex-toggle-wide" role="group" aria-label={t('sexTitle', lang)}>
+          <button className={'sex-opt' + (sex === 'male' ? ' active' : '')} onClick={() => setSex('male')} aria-pressed={sex === 'male'}>♂ {t('sexMale', lang)}</button>
+          <button className={'sex-opt' + (sex === 'female' ? ' active' : '')} onClick={() => setSex('female')} aria-pressed={sex === 'female'}>♀ {t('sexFemale', lang)}</button>
+        </div>
+      </div>
+      {sex === 'female' && <p className="panel-note">ℹ️ {t('femaleNote', lang)}</p>}
       <div className="panel-toolbar">
         <button className="btn btn-sm" onClick={showAll}>{t('showAll', lang)}</button>
       </div>

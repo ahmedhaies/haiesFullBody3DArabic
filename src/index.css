@@ -68,6 +68,27 @@ ul { list-style: none; margin: 0; padding: 0; }
   border-radius: 11px;
 }
 
+/* ---------- Sex toggle ---------- */
+.sex-toggle {
+  display: inline-flex; height: 40px; padding: 3px; gap: 3px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 11px;
+}
+.sex-opt {
+  display: inline-flex; align-items: center; gap: 4px; padding-inline: 10px;
+  border-radius: 8px; font-weight: 700; font-size: 13px; color: var(--text-dim);
+  transition: background .15s, color .15s; white-space: nowrap;
+}
+.sex-opt.active { background: rgba(74,158,234,0.22); color: #d6ecff; }
+.sex-opt:not(.active):hover { color: var(--text); }
+.sex-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-block-end: 12px; }
+.sex-field-label { font-weight: 700; font-size: 13.5px; color: var(--text-dim); }
+.sex-toggle-wide { height: 38px; }
+.panel-note {
+  font-size: 12.5px; line-height: 1.7; color: var(--text-dim);
+  background: rgba(240,180,90,0.09); border: 1px solid rgba(240,180,90,0.25);
+  border-radius: 10px; padding: 9px 11px; margin-block-end: 12px;
+}
+
 /* ---------- Search ---------- */
 .searchbox { position: relative; width: 100%; }
 .searchbox-field { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06);

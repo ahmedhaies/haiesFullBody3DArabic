@@ -3,12 +3,28 @@ import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
 import { SYSTEM_BY_ID, type SystemId } from '../data/systems'
-import { NODE_TO_ID, BY_ID } from '../data/terminology'
+import { NODE_TO_ID, BY_ID, organColor } from '../data/terminology'
 import { registerMeshes, unregisterSystem } from './registry'
 import { clipPlanes } from './clip'
 import { useStore } from '../store/useStore'
 
 const DRACO_PATH = `${import.meta.env.BASE_URL}draco/`
+
+// Per-system physically-based material tuning for a naturalistic look: wet sheen
+// on organs/vessels, matte bone, translucent skin regions.
+type Tune = { rough: number; metal?: number; clearcoat?: number; sheen?: number; env?: number; opacity?: number }
+const MAT_TUNE: Record<string, Tune> = {
+  skeletal: { rough: 0.68, clearcoat: 0.06, env: 0.75 },
+  joints: { rough: 0.5, clearcoat: 0.28, env: 0.95 },
+  muscular: { rough: 0.5, clearcoat: 0.16, sheen: 0.35, env: 0.9 },
+  cardiovascular: { rough: 0.36, clearcoat: 0.38, env: 1.0 },
+  visceral: { rough: 0.4, clearcoat: 0.36, sheen: 0.25, env: 1.0 },
+  nervous: { rough: 0.48, clearcoat: 0.12, env: 0.85 },
+  lymphatic: { rough: 0.48, clearcoat: 0.22, env: 0.9 },
+  regions: { rough: 0.85, clearcoat: 0.02, env: 0.5, opacity: 0.5 },
+  references: { rough: 0.6, env: 0.5 },
+  default: { rough: 0.55, clearcoat: 0.1, env: 0.8 },
+}
 
 interface Props { system: SystemId }
 
@@ -20,16 +36,33 @@ export default function SystemModel({ system }: Props) {
   const select = useStore((s) => s.select)
   const hover = useStore((s) => s.hover)
 
-  // four shared materials per system; all reference the same clip-plane array
+  // materials per system; base materials are cached per structure colour so
+  // organs read as real tissue. All reference the same shared clip-plane array.
   const mats = useMemo(() => {
-    const color = new THREE.Color(meta.color)
+    const t = MAT_TUNE[system] || MAT_TUNE.default
     const common = { clippingPlanes: clipPlanes, clipShadows: true, side: THREE.DoubleSide as THREE.Side }
-    const base = new THREE.MeshStandardMaterial({ color, roughness: 0.62, metalness: 0.02, ...common })
-    const faded = new THREE.MeshStandardMaterial({ color, roughness: 0.7, transparent: true, opacity: 0.08, depthWrite: false, ...common })
-    const highlight = new THREE.MeshStandardMaterial({ color: new THREE.Color('#ffb454'), emissive: new THREE.Color('#e8730c'), emissiveIntensity: 0.55, roughness: 0.4, metalness: 0.05, ...common })
-    const hovered = new THREE.MeshStandardMaterial({ color: color.clone().lerp(new THREE.Color('#ffffff'), 0.35), emissive: new THREE.Color('#3a6ea5'), emissiveIntensity: 0.25, roughness: 0.5, ...common })
-    return { base, faded, highlight, hovered }
-  }, [meta.color])
+    const cache = new Map<string, THREE.MeshPhysicalMaterial>()
+    const makeBase = (hex: string) => {
+      let m = cache.get(hex)
+      if (!m) {
+        const color = new THREE.Color(hex)
+        m = new THREE.MeshPhysicalMaterial({
+          color, roughness: t.rough, metalness: t.metal ?? 0.0,
+          clearcoat: t.clearcoat ?? 0, clearcoatRoughness: 0.4,
+          sheen: t.sheen ?? 0, sheenColor: color.clone().lerp(new THREE.Color('#ffffff'), 0.5),
+          envMapIntensity: t.env ?? 0.85,
+          transparent: t.opacity != null, opacity: t.opacity ?? 1, depthWrite: t.opacity == null,
+          ...common,
+        })
+        cache.set(hex, m)
+      }
+      return m
+    }
+    const faded = new THREE.MeshStandardMaterial({ color: new THREE.Color(meta.color), roughness: 0.8, metalness: 0, transparent: true, opacity: 0.06, depthWrite: false, envMapIntensity: 0.35, ...common })
+    const highlight = new THREE.MeshPhysicalMaterial({ color: new THREE.Color('#ffb454'), emissive: new THREE.Color('#e8730c'), emissiveIntensity: 0.5, roughness: 0.33, clearcoat: 0.4, clearcoatRoughness: 0.3, envMapIntensity: 1.0, ...common })
+    const hovered = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(meta.color).lerp(new THREE.Color('#ffffff'), 0.4), emissive: new THREE.Color('#2f6ea5'), emissiveIntensity: 0.26, roughness: 0.4, clearcoat: 0.3, envMapIntensity: 1.0, ...common })
+    return { makeBase, faded, highlight, hovered }
+  }, [meta.color, system])
 
   const meshesRef = useRef<{ mesh: THREE.Mesh; sid: string | null }[]>([])
 
@@ -45,9 +78,13 @@ export default function SystemModel({ system }: Props) {
       while (named && !named.userData?.name) named = named.parent
       const original = named?.userData?.name as string | undefined
       const sid = original ? NODE_TO_ID.get(original) ?? null : null
+      const st = sid ? BY_ID.get(sid) : null
       m.userData.sid = sid
-      m.userData.feature = sid ? !!BY_ID.get(sid)?.feature : true
-      m.material = mats.base
+      m.userData.feature = st ? !!st.feature : true
+      m.userData.sex = st ? st.sex : undefined
+      const baseMat = mats.makeBase((st && organColor(st)) || meta.color)
+      m.userData.baseMat = baseMat
+      m.material = baseMat
       m.frustumCulled = true
       m.castShadow = false
       m.receiveShadow = false
@@ -64,21 +101,25 @@ export default function SystemModel({ system }: Props) {
   // reactive highlight / fade / isolate
   useEffect(() => {
     const apply = (st: ReturnType<typeof useStore.getState>) => {
-      const { selectedId, hoveredId, fadeOthers, isolateStructure, showFeatures } = st
+      const { selectedId, hoveredId, fadeOthers, isolateStructure, showFeatures, sex } = st
       const anySel = !!selectedId
+      const wantSex = sex === 'male' ? 'm' : 'f'
       for (const { mesh, sid } of meshesRef.current) {
-        if (sid && sid === selectedId) {
+        // sex-specific structures only show in the matching body
+        const sexHidden = mesh.userData.sex && mesh.userData.sex !== wantSex
+        if (sid && sid === selectedId && !sexHidden) {
           mesh.material = mats.highlight
           mesh.visible = true
-        } else if (sid && sid === hoveredId) {
+        } else if (sid && sid === hoveredId && !sexHidden) {
           mesh.material = mats.hovered
           mesh.visible = true
         } else {
           let vis = true
+          if (sexHidden) vis = false
           if (mesh.userData.feature && !showFeatures) vis = false
           if (anySel && isolateStructure) vis = false
           mesh.visible = vis
-          mesh.material = anySel && fadeOthers ? mats.faded : mats.base
+          mesh.material = anySel && fadeOthers ? mats.faded : (mesh.userData.baseMat || mats.makeBase(meta.color))
         }
       }
     }

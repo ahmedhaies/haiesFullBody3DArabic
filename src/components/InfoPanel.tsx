@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
-import { BY_ID, loadDescriptionsEn, getDescriptionEn } from '../data/terminology'
+import { BY_ID, loadDescriptionsEn, getDescriptionEn, describeAr, describeEn } from '../data/terminology'
 import { SYSTEM_BY_ID } from '../data/systems'
 import { t } from '../i18n/strings'
 import { names, sideLabel } from '../hooks'
@@ -62,13 +62,11 @@ export default function InfoPanel() {
         {s.la && <div><dt>{t('latinName', lang)}</dt><dd dir="ltr"><em>{s.la}</em></dd></div>}
       </dl>
 
-      {(s.descAr || descEn) && (
-        <div className="info-desc">
-          <h3>{t('description', lang)}</h3>
-          {s.descAr && <p>{s.descAr}</p>}
-          {descEn && <p className="info-desc-en" dir="ltr">{descEn}</p>}
-        </div>
-      )}
+      <div className="info-desc">
+        <h3>{t('description', lang)}</h3>
+        <p dir="rtl">{describeAr(s)}</p>
+        <p className="info-desc-en" dir="ltr">{descEn || describeEn(s)}</p>
+      </div>
 
       <div className="info-actions">
         <button className="btn" onClick={requestFocus}>🎯 {t('focus', lang)}</button>

@@ -21,6 +21,17 @@ export const UI: Dict = {
   help: { ar: 'مساعدة', en: 'Help' },
   reset: { ar: 'إعادة الضبط', en: 'Reset view' },
   close: { ar: 'إغلاق', en: 'Close' },
+
+  // Body sex
+  sexTitle: { ar: 'جنس الجسم', en: 'Body sex' },
+  sexMale: { ar: 'ذكر', en: 'Male' },
+  sexFemale: { ar: 'أنثى', en: 'Female' },
+  sexToggle: { ar: 'تبديل الجنس (ذكر/أنثى)', en: 'Switch body (male / female)' },
+  femaleNote: {
+    ar: 'النماذج مفتوحة المصدر مبنية على جسم ذكر، لذلك في وضع الأنثى تُخفى الأعضاء التناسلية الذكرية. باقي الأجهزة (الهيكل، العضلات، الأوعية، الأعصاب…) مشتركة بين الجنسين.',
+    en: 'The open-source models are based on a male body, so female mode hides the male genital organs. All other systems (skeleton, muscles, vessels, nerves…) are shared.',
+  },
+
   clear: { ar: 'مسح', en: 'Clear' },
   language: { ar: 'English', en: 'العربية' }, // label shows the OTHER language
 
