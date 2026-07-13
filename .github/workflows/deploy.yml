@@ -36,6 +36,10 @@ jobs:
 
   deploy:
     needs: build
+    # GitHub Pages only lets the repository's default branch publish, so only
+    # run the publish step there. Other branches still build (verifying the
+    # commit) without a failed deploy. Tracks the default branch automatically.
+    if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     environment:
       name: github-pages
