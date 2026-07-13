@@ -101,21 +101,24 @@ export default function SystemModel({ system }: Props) {
   // reactive highlight / fade / isolate
   useEffect(() => {
     const apply = (st: ReturnType<typeof useStore.getState>) => {
-      const { selectedId, hoveredId, fadeOthers, isolateStructure, showFeatures, sex } = st
+      const { selectedId, hoveredId, fadeOthers, isolateStructure, showFeatures, sex, hidden } = st
       const anySel = !!selectedId
       const wantSex = sex === 'male' ? 'm' : 'f'
       for (const { mesh, sid } of meshesRef.current) {
         // sex-specific structures only show in the matching body
         const sexHidden = mesh.userData.sex && mesh.userData.sex !== wantSex
-        if (sid && sid === selectedId && !sexHidden) {
+        // user-hidden structures stay hidden (persisted) until restored
+        const userHidden = !!(sid && hidden.includes(sid))
+        if (sid && sid === selectedId && !sexHidden && !userHidden) {
           mesh.material = mats.highlight
           mesh.visible = true
-        } else if (sid && sid === hoveredId && !sexHidden) {
+        } else if (sid && sid === hoveredId && !sexHidden && !userHidden) {
           mesh.material = mats.hovered
           mesh.visible = true
         } else {
           let vis = true
           if (sexHidden) vis = false
+          if (userHidden) vis = false
           if (mesh.userData.feature && !showFeatures) vis = false
           if (anySel && isolateStructure) vis = false
           mesh.visible = vis

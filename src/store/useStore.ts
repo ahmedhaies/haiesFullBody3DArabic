@@ -27,6 +27,7 @@ interface State {
 
   favorites: string[]
   notes: Record<string, string>
+  hidden: string[]
 
   panel: PanelId
   focusNonce: number
@@ -60,6 +61,10 @@ interface State {
   toggleFavorite: (id: string) => void
   setNote: (id: string, text: string) => void
 
+  hideStructure: (id: string) => void
+  unhideStructure: (id: string) => void
+  clearHidden: () => void
+
   setPanel: (p: PanelId) => void
 
   startTour: (id: string) => void
@@ -85,6 +90,7 @@ export const useStore = create<State>()(
       clip: { enabled: false, axis: 'x', value: 0, flip: false },
       favorites: [],
       notes: {},
+      hidden: [],
       panel: 'none',
       focusNonce: 0,
       resetNonce: 0,
@@ -152,6 +158,17 @@ export const useStore = create<State>()(
           return { notes }
         }),
 
+      // Persisted per-structure visibility. Hiding a structure keeps it hidden
+      // across sessions until the user restores it. Hiding the currently
+      // selected structure also closes its info panel.
+      hideStructure: (id) =>
+        set((s) => ({
+          hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id],
+          selectedId: s.selectedId === id ? null : s.selectedId,
+        })),
+      unhideStructure: (id) => set((s) => ({ hidden: s.hidden.filter((x) => x !== id) })),
+      clearHidden: () => set({ hidden: [] }),
+
       setPanel: (p) => set((s) => ({ panel: s.panel === p ? 'none' : p })),
 
       startTour: (id) => set({ activeTour: id, tourStep: 0, panel: 'none' }),
@@ -165,6 +182,7 @@ export const useStore = create<State>()(
         sex: s.sex,
         favorites: s.favorites,
         notes: s.notes,
+        hidden: s.hidden,
         visibleSystems: s.visibleSystems,
       }),
     },

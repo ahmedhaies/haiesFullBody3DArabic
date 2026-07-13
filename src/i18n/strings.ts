@@ -40,6 +40,13 @@ export const UI: Dict = {
   isolate: { ar: 'إفراد', en: 'Isolate' },
   showAll: { ar: 'إظهار الكل', en: 'Show all' },
   hideOthers: { ar: 'إخفاء الباقي', en: 'Hide others' },
+
+  // Per-organ hide / restore (persisted)
+  hideOrgan: { ar: 'إخفاء هذا العضو', en: 'Hide this part' },
+  hiddenTitle: { ar: 'الأعضاء المخفية', en: 'Hidden parts' },
+  showAllHidden: { ar: 'إظهار الكل', en: 'Restore all' },
+  unhide: { ar: 'إظهار', en: 'Restore' },
+  hiddenHint: { ar: 'اضغط على أي عنصر لإعادة إظهاره', en: 'Tap any item to bring it back' },
   focus: { ar: 'تركيز', en: 'Focus' },
   transparency: { ar: 'شفافية باقي الأجسام', en: 'Fade other structures' },
   explode: { ar: 'تباعد الطبقات', en: 'Layer depth' },

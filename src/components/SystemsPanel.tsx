@@ -1,7 +1,8 @@
 import { useStore } from '../store/useStore'
 import { SYSTEMS } from '../data/systems'
-import { BY_SYSTEM } from '../data/terminology'
+import { BY_SYSTEM, BY_ID, type Structure } from '../data/terminology'
 import { t } from '../i18n/strings'
+import { names } from '../hooks'
 
 export default function SystemsPanel() {
   const lang = useStore((s) => s.lang)
@@ -11,6 +12,11 @@ export default function SystemsPanel() {
   const showOnly = useStore((s) => s.showOnlySystem)
   const sex = useStore((s) => s.sex)
   const setSex = useStore((s) => s.setSex)
+  const hidden = useStore((s) => s.hidden)
+  const unhide = useStore((s) => s.unhideStructure)
+  const clearHidden = useStore((s) => s.clearHidden)
+
+  const hiddenStructures = hidden.map((id) => BY_ID.get(id)).filter(Boolean) as Structure[]
 
   return (
     <div className="panel-body">
@@ -22,6 +28,27 @@ export default function SystemsPanel() {
         </div>
       </div>
       {sex === 'female' && <p className="panel-note">ℹ️ {t('femaleNote', lang)}</p>}
+
+      {hiddenStructures.length > 0 && (
+        <div className="hidden-field">
+          <div className="hidden-head">
+            <span className="hidden-title">🚫 {t('hiddenTitle', lang)} <span className="hidden-count">{hiddenStructures.length}</span></span>
+            <button className="btn btn-sm" onClick={clearHidden}>{t('showAllHidden', lang)}</button>
+          </div>
+          <p className="hidden-hint">{t('hiddenHint', lang)}</p>
+          <ul className="hidden-list">
+            {hiddenStructures.map((s) => (
+              <li key={s.id}>
+                <button className="hidden-row" onClick={() => unhide(s.id)} title={t('unhide', lang)}>
+                  <span className="hidden-name">{names(s, lang).primary}</span>
+                  <span className="hidden-eye">👁 {t('unhide', lang)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="panel-toolbar">
         <button className="btn btn-sm" onClick={showAll}>{t('showAll', lang)}</button>
       </div>

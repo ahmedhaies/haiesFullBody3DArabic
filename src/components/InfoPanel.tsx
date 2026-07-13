@@ -16,6 +16,7 @@ export default function InfoPanel() {
   const isolate = useStore((s) => s.isolateStructure)
   const setIsolate = useStore((s) => s.setIsolateStructure)
   const select = useStore((s) => s.select)
+  const hideStructure = useStore((s) => s.hideStructure)
 
   const [descEn, setDescEn] = useState<string | undefined>()
   const [noteDraft, setNoteDraft] = useState('')
@@ -74,6 +75,7 @@ export default function InfoPanel() {
         <button className={'btn' + (isFav ? ' btn-active' : '')} onClick={() => toggleFavorite(s.id)}>
           {isFav ? '★' : '☆'} {isFav ? t('removeFavorite', lang) : t('addFavorite', lang)}
         </button>
+        <button className="btn btn-hide" onClick={() => hideStructure(s.id)} title={t('hideOrgan', lang)}>🚫 {t('hideOrgan', lang)}</button>
       </div>
 
       <div className="info-note">
