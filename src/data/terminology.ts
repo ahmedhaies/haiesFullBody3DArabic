@@ -4,6 +4,7 @@ import { SYSTEM_BY_ID, type SystemId } from './systems'
 import manifestRaw from './manifest.json'
 import autoTerms from './terms_auto.json'
 import curatedTerms from './terms_curated.json'
+import { arabize } from './arabize'
 
 type ManifestEntry = { k: string; n: string[]; s: string; f: number; v?: number }
 const manifest = manifestRaw as Record<string, ManifestEntry[]>
@@ -48,7 +49,8 @@ for (const sys of Object.keys(manifest) as SystemId[]) {
   manifest[sys].forEach((e, i) => {
     const key = e.k
     const cur = curated[key]
-    const ar = cur?.ar || auto[key] || ''
+    // priority: curated (verified) > auto dictionary > rule-based composer
+    const ar = cur?.ar || auto[key] || arabize(key) || ''
     const st: Structure = {
       id: `${sys}#${i}`,
       key,
@@ -69,6 +71,38 @@ for (const sys of Object.keys(manifest) as SystemId[]) {
     list.push(st)
   })
   BY_SYSTEM.set(sys, list)
+}
+
+// ---- injected female reproductive set --------------------------------------
+// The open male-based mesh set ships no female genitalia, so the uterus, tubes,
+// ovaries and vagina are added here as first-class (searchable, selectable)
+// structures. Their geometry is generated procedurally in <FemaleReproductive/>
+// and shown only in female mode. They live under the viscera group.
+export interface FemaleOrgan { id: string; en: string; ar: string; la: string; sides: string; descAr: string }
+export const FEMALE_REPRO: FemaleOrgan[] = [
+  { id: 'visceral#f_uterus', en: 'Uterus', ar: 'الرَّحِم', la: 'Uterus', sides: '',
+    descAr: 'العضو العضلي الأجوف الكُمّثري في حوض الأنثى، حيث تنغرس البويضة المُلقّحة وينمو الجنين طوال الحمل.' },
+  { id: 'visceral#f_cervix', en: 'Cervix of uterus', ar: 'عُنق الرَّحِم', la: 'Cervix uteri', sides: '',
+    descAr: 'الجزء السفلي الضيّق من الرحم الذي يصله بالمهبل.' },
+  { id: 'visceral#f_vagina', en: 'Vagina', ar: 'المِهبَل', la: 'Vagina', sides: '',
+    descAr: 'قناة عضلية مرنة تصل عنق الرحم بالخارج، وهي مجرى الولادة.' },
+  { id: 'visceral#f_ovary_r', en: 'Right ovary', ar: 'المَبيض الأيمن', la: 'Ovarium dextrum', sides: 'r',
+    descAr: 'الغدة التناسلية الأنثوية التي تُنتج البويضات والهرمونات الجنسية (الإستروجين والبروجستيرون).' },
+  { id: 'visceral#f_ovary_l', en: 'Left ovary', ar: 'المَبيض الأيسر', la: 'Ovarium sinistrum', sides: 'l',
+    descAr: 'الغدة التناسلية الأنثوية التي تُنتج البويضات والهرمونات الجنسية (الإستروجين والبروجستيرون).' },
+  { id: 'visceral#f_tube_r', en: 'Right uterine (fallopian) tube', ar: 'البُوق الأيمن (قناة فالوب اليمنى)', la: 'Tuba uterina dextra', sides: 'r',
+    descAr: 'قناة تنقل البويضة من المبيض إلى الرحم، وفيها يحدث الإخصاب عادةً.' },
+  { id: 'visceral#f_tube_l', en: 'Left uterine (fallopian) tube', ar: 'البُوق الأيسر (قناة فالوب اليسرى)', la: 'Tuba uterina sinistra', sides: 'l',
+    descAr: 'قناة تنقل البويضة من المبيض إلى الرحم، وفيها يحدث الإخصاب عادةً.' },
+]
+for (const o of FEMALE_REPRO) {
+  const st: Structure = {
+    id: o.id, key: o.en, en: o.en, ar: o.ar, la: o.la, arVerified: true,
+    system: 'visceral', sides: o.sides, feature: false, nodes: [], descAr: o.descAr, sex: 'f',
+  }
+  STRUCTURES.push(st)
+  BY_ID.set(st.id, st)
+  BY_SYSTEM.get('visceral')!.push(st)
 }
 
 // ---- bilingual auto-descriptions ------------------------------------------

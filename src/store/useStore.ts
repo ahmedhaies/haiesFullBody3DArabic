@@ -9,6 +9,7 @@ export type Axis = 'x' | 'y' | 'z'
 export type Sex = 'male' | 'female'
 
 interface ClipState { enabled: boolean; axis: Axis; value: number; flip: boolean }
+export interface CameraState { pos: [number, number, number]; target: [number, number, number] }
 
 interface State {
   lang: Lang
@@ -28,6 +29,9 @@ interface State {
   favorites: string[]
   notes: Record<string, string>
   hidden: string[]
+
+  // last camera view, restored on reload so the user resumes where they left off
+  camera: CameraState | null
 
   panel: PanelId
   focusNonce: number
@@ -65,6 +69,8 @@ interface State {
   unhideStructure: (id: string) => void
   clearHidden: () => void
 
+  saveCamera: (c: CameraState) => void
+
   setPanel: (p: PanelId) => void
 
   startTour: (id: string) => void
@@ -91,6 +97,7 @@ export const useStore = create<State>()(
       favorites: [],
       notes: {},
       hidden: [],
+      camera: null,
       panel: 'none',
       focusNonce: 0,
       resetNonce: 0,
@@ -169,6 +176,8 @@ export const useStore = create<State>()(
       unhideStructure: (id) => set((s) => ({ hidden: s.hidden.filter((x) => x !== id) })),
       clearHidden: () => set({ hidden: [] }),
 
+      saveCamera: (c) => set({ camera: c }),
+
       setPanel: (p) => set((s) => ({ panel: s.panel === p ? 'none' : p })),
 
       startTour: (id) => set({ activeTour: id, tourStep: 0, panel: 'none' }),
@@ -177,6 +186,10 @@ export const useStore = create<State>()(
     }),
     {
       name: 'haies-anatomy',
+      // Everything the user customises is persisted so reopening the app resumes
+      // the exact same state: language, body sex, favourites, notes, hidden
+      // parts, which systems are shown, the viewer toggles, the cross-section,
+      // and the camera view (position + target).
       partialize: (s) => ({
         lang: s.lang,
         sex: s.sex,
@@ -184,6 +197,12 @@ export const useStore = create<State>()(
         notes: s.notes,
         hidden: s.hidden,
         visibleSystems: s.visibleSystems,
+        showFeatures: s.showFeatures,
+        fadeOthers: s.fadeOthers,
+        isolateStructure: s.isolateStructure,
+        autoRotate: s.autoRotate,
+        clip: s.clip,
+        camera: s.camera,
       }),
     },
   ),

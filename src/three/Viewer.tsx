@@ -7,6 +7,7 @@ import { useStore } from '../store/useStore'
 import { SYSTEMS } from '../data/systems'
 import { useIsMobile } from '../hooks'
 import SystemModel from './SystemModel'
+import FemaleReproductive from './FemaleReproductive'
 import CameraRig from './CameraRig'
 import { updateClip } from './clip'
 import { sceneInfo } from './clip'
@@ -75,6 +76,7 @@ export default function Viewer() {
   const visibleSystems = useStore((s) => s.visibleSystems)
   const autoRotate = useStore((s) => s.autoRotate)
   const select = useStore((s) => s.select)
+  const sex = useStore((s) => s.sex)
   const mobile = useIsMobile()
   // keep a stable render order matching SYSTEMS
   const active = SYSTEMS.filter((s) => visibleSystems.includes(s.id))
@@ -99,6 +101,7 @@ export default function Viewer() {
         {active.map((s) => (
           <SystemModel key={s.id} system={s.id} />
         ))}
+        {sex === 'female' && <FemaleReproductive />}
         <GroundShadow mobile={mobile} />
       </Suspense>
       <CameraRig />

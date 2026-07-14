@@ -10,6 +10,12 @@ import { useStore } from '../store/useStore'
 
 const DRACO_PATH = `${import.meta.env.BASE_URL}draco/`
 
+// A user-hidden mesh must also stop catching clicks, otherwise its invisible
+// geometry keeps intercepting the ray and blocks the organs behind it. Swapping
+// raycast for a no-op lets the pointer pass straight through to what's beneath.
+const NOOP_RAYCAST: THREE.Mesh['raycast'] = () => {}
+const MESH_RAYCAST = THREE.Mesh.prototype.raycast
+
 // Per-system physically-based material tuning for a naturalistic look: wet sheen
 // on organs/vessels, matte bone, translucent skin regions.
 type Tune = { rough: number; metal?: number; clearcoat?: number; sheen?: number; env?: number; opacity?: number }
@@ -107,8 +113,10 @@ export default function SystemModel({ system }: Props) {
       for (const { mesh, sid } of meshesRef.current) {
         // sex-specific structures only show in the matching body
         const sexHidden = mesh.userData.sex && mesh.userData.sex !== wantSex
-        // user-hidden structures stay hidden (persisted) until restored
+        // user-hidden structures stay hidden (persisted) until restored, and
+        // become click-through so you can reach whatever sits behind them
         const userHidden = !!(sid && hidden.includes(sid))
+        mesh.raycast = userHidden ? NOOP_RAYCAST : MESH_RAYCAST
         if (sid && sid === selectedId && !sexHidden && !userHidden) {
           mesh.material = mats.highlight
           mesh.visible = true

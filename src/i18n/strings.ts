@@ -28,8 +28,8 @@ export const UI: Dict = {
   sexFemale: { ar: 'أنثى', en: 'Female' },
   sexToggle: { ar: 'تبديل الجنس (ذكر/أنثى)', en: 'Switch body (male / female)' },
   femaleNote: {
-    ar: 'النماذج مفتوحة المصدر مبنية على جسم ذكر، لذلك في وضع الأنثى تُخفى الأعضاء التناسلية الذكرية. باقي الأجهزة (الهيكل، العضلات، الأوعية، الأعصاب…) مشتركة بين الجنسين.',
-    en: 'The open-source models are based on a male body, so female mode hides the male genital organs. All other systems (skeleton, muscles, vessels, nerves…) are shared.',
+    ar: 'النماذج مفتوحة المصدر مبنية على جسم ذكر. في وضع الأنثى تُخفى الأعضاء التناسلية الذكرية ويُضاف الجهاز التناسلي الأنثوي (الرحم والمبيضان والبوقان والمهبل) في موضعه داخل الحوض — افتح طبقة «الأحشاء» أو ابحث عن «الرحم» لعرضه. باقي الأجهزة مشتركة بين الجنسين.',
+    en: 'The open-source models are based on a male body. Female mode hides the male genital organs and adds the female reproductive set (uterus, ovaries, tubes, vagina) in its place inside the pelvis — open the “Viscera” layer or search “uterus” to view it. All other systems are shared.',
   },
 
   clear: { ar: 'مسح', en: 'Clear' },

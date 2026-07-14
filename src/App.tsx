@@ -13,6 +13,7 @@ import TourOverlay from './components/TourOverlay'
 import SearchBox from './components/SearchBox'
 import Loader from './components/Loader'
 import HelpModal from './components/HelpModal'
+import HiddenChip from './components/HiddenChip'
 import { useIsMobile } from './hooks'
 
 const DOCK_PANELS: PanelId[] = ['search', 'layers', 'tools', 'tours', 'library']
@@ -71,6 +72,7 @@ export default function App() {
       <Dock />
       <PanelDrawer />
       {showInfo && <aside className="drawer drawer-start info-drawer"><InfoPanel /></aside>}
+      {!activeTour && <HiddenChip />}
       {activeTour && <TourOverlay />}
 
       {!hintDone && !selectedId && !activeTour && (

@@ -12,9 +12,26 @@ export default function CameraRig() {
   const desiredPos = useRef<THREE.Vector3 | null>(null)
   const desiredTarget = useRef<THREE.Vector3 | null>(null)
   const initialized = useRef(false)
+  // snapshot the persisted view once, so later saves don't retrigger framing
+  const savedView = useRef(useStore.getState().camera)
 
   const focusNonce = useStore((s) => s.focusNonce)
   const resetNonce = useStore((s) => s.resetNonce)
+
+  // persist the camera whenever the user finishes moving it (drag / zoom / pan),
+  // so the exact view is restored on the next visit
+  useEffect(() => {
+    if (!controls) return
+    const onEnd = () => {
+      const t = controls.target
+      useStore.getState().saveCamera({
+        pos: [camera.position.x, camera.position.y, camera.position.z],
+        target: [t.x, t.y, t.z],
+      })
+    }
+    controls.addEventListener('end', onEnd)
+    return () => controls.removeEventListener('end', onEnd)
+  }, [controls, camera])
 
   const frame = (center: THREE.Vector3, radius: number, keepDir: boolean) => {
     const dir = new THREE.Vector3()
@@ -52,10 +69,18 @@ export default function CameraRig() {
       recomputeSceneInfo()
       if (sceneInfo.set) {
         const radius = sceneInfo.size.length() / 2
-        frame(sceneInfo.center.clone(), radius, false)
         if (controls) {
           controls.minDistance = radius * 0.15
           controls.maxDistance = radius * 8
+        }
+        const v = savedView.current
+        if (v && controls) {
+          // resume the persisted view immediately (no fly-in)
+          camera.position.set(v.pos[0], v.pos[1], v.pos[2])
+          controls.target.set(v.target[0], v.target[1], v.target[2])
+          controls.update()
+        } else {
+          frame(sceneInfo.center.clone(), radius, false)
         }
         initialized.current = true
       }
