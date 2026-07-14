@@ -5,6 +5,7 @@ import manifestRaw from './manifest.json'
 import autoTerms from './terms_auto.json'
 import curatedTerms from './terms_curated.json'
 import { arabize } from './arabize'
+import { CHAKRAS } from './chakras'
 
 type ManifestEntry = { k: string; n: string[]; s: string; f: number; v?: number }
 const manifest = manifestRaw as Record<string, ManifestEntry[]>
@@ -104,6 +105,19 @@ for (const o of FEMALE_REPRO) {
   BY_ID.set(st.id, st)
   BY_SYSTEM.get('visceral')!.push(st)
 }
+
+// ---- injected chakra overlay (procedural geometry in <ChakraLayer/>) --------
+const chakraList: Structure[] = []
+for (const c of CHAKRAS) {
+  const st: Structure = {
+    id: c.id, key: c.en, en: c.en, ar: c.ar, la: c.sanskrit, arVerified: true,
+    system: 'chakras', sides: '', feature: false, nodes: [], descAr: c.descAr,
+  }
+  STRUCTURES.push(st)
+  BY_ID.set(st.id, st)
+  chakraList.push(st)
+}
+BY_SYSTEM.set('chakras', chakraList)
 
 // ---- bilingual auto-descriptions ------------------------------------------
 // Every structure gets a short description in BOTH languages: curated Arabic /

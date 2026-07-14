@@ -18,8 +18,8 @@
   --topbar-h: 58px;
   --dock-w: 78px;
   --dock-h: 66px;
-  --font-body: 'Cairo', 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
-  --font-display: 'Reem Kufi', 'Cairo', 'Segoe UI', Tahoma, 'Noto Sans Arabic', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans Arabic', 'IBM Plex Sans', 'Segoe UI', Tahoma, 'Noto Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-display: 'IBM Plex Sans Arabic', 'IBM Plex Sans', 'Segoe UI', Tahoma, 'Noto Sans Arabic', system-ui, sans-serif;
   font-family: var(--font-body);
 }
 

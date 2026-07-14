@@ -12,6 +12,7 @@ export type SystemId =
   | 'lymphatic'
   | 'regions'
   | 'references'
+  | 'chakras'
 
 export interface SystemMeta {
   id: SystemId
@@ -74,6 +75,12 @@ export const SYSTEMS: SystemMeta[] = [
     id: 'references', file: 'references.glb',
     ar: 'الخطوط والمستويات المرجعية', en: 'Reference lines & planes', latin: 'Termini situm',
     color: '#5b7fb0', icon: '📐', depth: 8, defaultVisible: false,
+  },
+  {
+    // Procedural energy-center overlay (no GLB); rendered by <ChakraLayer/>.
+    id: 'chakras', file: '',
+    ar: 'الشاكرات (مراكز الطاقة)', en: 'Chakras (energy centers)', latin: 'Cakra',
+    color: '#b07ee6', icon: '🌀', depth: 9, defaultVisible: false,
   },
 ]
 

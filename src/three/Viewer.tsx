@@ -8,6 +8,7 @@ import { SYSTEMS } from '../data/systems'
 import { useIsMobile } from '../hooks'
 import SystemModel from './SystemModel'
 import FemaleReproductive from './FemaleReproductive'
+import ChakraLayer from './ChakraLayer'
 import CameraRig from './CameraRig'
 import { updateClip } from './clip'
 import { sceneInfo } from './clip'
@@ -98,10 +99,11 @@ export default function Viewer() {
       <EnvLight />
       <Lights />
       <Suspense fallback={null}>
-        {active.map((s) => (
+        {active.filter((s) => s.file).map((s) => (
           <SystemModel key={s.id} system={s.id} />
         ))}
         {sex === 'female' && <FemaleReproductive />}
+        {visibleSystems.includes('chakras') && <ChakraLayer />}
         <GroundShadow mobile={mobile} />
       </Suspense>
       <CameraRig />
