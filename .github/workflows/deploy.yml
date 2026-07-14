@@ -12,8 +12,11 @@ permissions:
   pages: write
   id-token: write
 
+# Per-branch concurrency: a push to one branch never cancels another branch's
+# run. Only the default branch actually publishes (see the deploy job's `if`),
+# so main can build in parallel without cancelling the default branch's deploy.
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
